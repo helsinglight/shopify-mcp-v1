@@ -948,5 +948,29 @@ async def shopify_create_webhook(params: CreateWebhookInput) -> str:
 # ---------------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------------
+#if __name__ == "__main__":
+ #   mcp.run(transport=MCP_TRANSPORT)
+
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+BEARER_TOKEN = os.environ.get("BEARER_TOKEN", "")
+
+class BearerAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if BEARER_TOKEN:
+            auth = request.headers.get("Authorization", "")
+            if auth != f"Bearer {BEARER_TOKEN}":
+                return Response("Unauthorized", status_code=401)
+        return await call_next(request)
+
+if BEARER_TOKEN:
+    logger.info("Bearer token authentication: ENABLED")
+else:
+    logger.warning("Bearer token authentication: DISABLED")
+
 if __name__ == "__main__":
-    mcp.run(transport=MCP_TRANSPORT)
+    import uvicorn
+    app = mcp.streamable_http_app()
+    app.add_middleware(BearerAuthMiddleware)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
