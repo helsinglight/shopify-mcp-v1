@@ -41,21 +41,6 @@ MCP_TRANSPORT = os.environ.get("MCP_TRANSPORT", "streamable-http")
 
 mcp = FastMCP("shopify_mcp", host="0.0.0.0", port=PORT, json_response=True)
 
-import secrets
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-
-BEARER_TOKEN = os.environ.get("BEARER_TOKEN", "")
-
-class BearerAuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        if BEARER_TOKEN:
-            auth = request.headers.get("Authorization", "")
-            if auth != f"Bearer {BEARER_TOKEN}":
-                return Response("Unauthorized", status_code=401)
-        return await call_next(request)
-
-mcp.app.add_middleware(BearerAuthMiddleware)
 
 # ---------------------------------------------------------------------------
 # Token Manager — handles automatic token lifecycle
@@ -948,8 +933,8 @@ async def shopify_create_webhook(params: CreateWebhookInput) -> str:
 # ---------------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------------
-#if __name__ == "__main__":
- #   mcp.run(transport=MCP_TRANSPORT)
+if __name__ == "__main__":
+    mcp.run(transport=MCP_TRANSPORT)
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
